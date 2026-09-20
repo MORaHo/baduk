@@ -70,14 +70,6 @@ def clear_block_and_liberties():
     block = []
     liberties = []
 
-
-def clean_pre_pre_board():
-    for y in range(SIZE):
-        for x in range(SIZE):
-            #if pre_pre_board[y][x] != OFFBOARD:
-            #   pre_pre_board[y][x] &= RESTORE
-            pass
-
 def remove_markings_and_liberties():
 
     clear_block_and_liberties()
@@ -121,10 +113,9 @@ def flood(x,y,colour): #function to find components of a group, used to determin
 
 # function to check if there the given colour is capturing
 def captures(given_colour):
-    
-    global check, pre_pre_board, current_player, opposing_player, seki_counter #for some reason it didn't like it if I didn't do this
+
     check = False
-    colour = PLAYER_ARRAY[3-given_colour] #we swap since this function checks if block of stones if captured, ergo if the colour captures
+    colour = PLAYER_ARRAY[3-given_colour] #we swap since this function checks if block of stones is captured, ergo if the colour captures
 
     for y in range(SIZE):
         for x in range(SIZE):
@@ -139,18 +130,9 @@ def captures(given_colour):
 
                 if len(liberties) == 0: # if there a 0 liberties, the block has been captured, it can be cleared
 
-                        #if the move is 'ko' move but causes the capture of stone, then it is not allowed, unless it's the second move, in which it is dealt afterwards
-                        # to be honest this is logic I wrote 6 months ago and I'm not sure why it works but it does so, it's fine
-
-                    #if seki_counter == 0: #if this is the first seki in a sequence
-                        
-                    #    check = True #there has been a capture
-                    #    remove_stones()
-                        #seki_counter = 1
-                    #    continue
+                    #if the move is 'ko' move but causes the capture of stone, then it is not allowed, unless it's the second move, in which it is dealt afterwards
 
                     check = True #confirms that there has been a capture
-                    
                     remove_stones() #remove the stones 
 
                 #we can remove all markers and liberties, allowing for the next iteration
@@ -245,96 +227,85 @@ while run:
             if board[cell_row][cell_column] != EMPTY or board[cell_row][cell_row] == OFFBOARD:
                 continue # this solves issue of clicking on offset since that is occupied by offboard value in the board so it's fine0
             
+            fallback_board = copy(board) #board that will be used as reference, copy only copies the values rather than the pointer, allowing for the comparison.
+            place_stone(cell_row,cell_column)
 
-            else:
+            if seki_counter == 1:
+                
+                captures(opposing_player)
+                posticipate_board = copy(board)
+                    
+                if ((fallback_board == posticipate_board).all()) == True and (determine_if_neighbour(cell_row,cell_column)) == True:
+                    continue
 
-                fallback_board = copy(board) #board that will be used as reference, copy only copies the values rather than the pointer, allowing for the comparison.
+                seki_counter = 0
+                board = copy(fallback_board)
                 place_stone(cell_row,cell_column)
 
-                if seki_counter == 1:
-                    
-                    captures(opposing_player)
-                    posticipate_board = copy(board)
-                        
-                    if ((fallback_board == posticipate_board).all()) == True and (determine_if_neighbour(cell_row,cell_column)) == True:
-                        continue
+                if captures(opposing_player) == True:
 
-                    else:
+                    board = numpy.copy(fallback_board)
+                    place_stone(cell_row, cell_column)
 
-                        seki_counter = 0
+                    if captures(current_player) != True:
+
                         board = copy(fallback_board)
-                        place_stone(cell_row,cell_column)
-
-                        if captures(opposing_player) == True:
-
-                            board = numpy.copy(fallback_board)
-                            place_stone(cell_row, cell_column)
-
-                            if captures(current_player) == True:
-                                
-                                draw_board()
-                                moves[current_player].append((cell_row,cell_column))
-                                opposing_player = PLAYER_ARRAY[current_player]
-                                current_player  = PLAYER_ARRAY[3-current_player]
-                                seki_counter = 1
-                                continue
-
-                            else:
-                                board = copy(fallback_board)
-                                seki_counter = 1
-                                continue
+                        seki_counter = 1
+                        continue
                         
-                        elif captures(current_player) == True:
-                            
-                            moves[current_player].append((cell_row,cell_column))
-                            draw_board()
-                            opposing_player = PLAYER_ARRAY[current_player]
-                            current_player  = PLAYER_ARRAY[3-current_player]
-                            continue
-                        
-                        else:
-                            moves[current_player].append((cell_row,cell_column))
-                            opposing_player = PLAYER_ARRAY[current_player]
-                            current_player  = PLAYER_ARRAY[3-current_player]
-                            draw_board()
-                            continue
-
-
+                    moves[current_player].append((cell_row,cell_column))
+                    opposing_player = PLAYER_ARRAY[current_player]
+                    current_player  = PLAYER_ARRAY[3-current_player]
+                    seki_counter = 1
+                    draw_board()
+                    continue
+                
+                elif captures(current_player) == True:
+                    
+                    moves[current_player].append((cell_row,cell_column))
+                    opposing_player = PLAYER_ARRAY[current_player]
+                    current_player  = PLAYER_ARRAY[3-current_player]
+                    draw_board()
+                    continue
+                
                 else:
+                    moves[current_player].append((cell_row,cell_column))
+                    opposing_player = PLAYER_ARRAY[current_player]
+                    current_player  = PLAYER_ARRAY[3-current_player]
+                    draw_board()
+                    continue
 
-                    seki_counter = 0
+            seki_counter = 0
 
-                    if captures(opposing_player) == True:
+            if captures(opposing_player) == True:
 
-                        board = copy(fallback_board)
-                        place_stone(cell_row,cell_column)
+                board = copy(fallback_board)
+                place_stone(cell_row,cell_column)
 
-                        if captures(current_player) == True:
+                if captures(current_player) != True:
+                    board = numpy.copy(fallback_board)
+                    continue
 
-                            draw_board()
-                            moves[current_player].append((cell_row,cell_column))
-                            opposing_player = PLAYER_ARRAY[current_player]
-                            current_player  = PLAYER_ARRAY[3-current_player]
-                            seki_counter = 1
-                            continue
-                            
-                        else:
-                            board = numpy.copy(fallback_board)
-                            continue
-                    
-                    elif captures(current_player) == True:
-                        draw_board()
-                        moves[current_player].append((cell_row,cell_column))
-                        opposing_player = PLAYER_ARRAY[current_player]
-                        current_player  = PLAYER_ARRAY[3-current_player]
-                        continue
+                moves[current_player].append((cell_row,cell_column))
+                opposing_player = PLAYER_ARRAY[current_player]
+                current_player  = PLAYER_ARRAY[3-current_player]
+                seki_counter = 1
+                draw_board()
+                continue
+            
+            elif captures(current_player) == True:
+                moves[current_player].append((cell_row,cell_column))
+                opposing_player = PLAYER_ARRAY[current_player]
+                current_player  = PLAYER_ARRAY[3-current_player]
+                draw_board()
+                continue
 
-                    else:
-                        moves[current_player].append((cell_row,cell_column))
-                        opposing_player = PLAYER_ARRAY[current_player]
-                        current_player  = PLAYER_ARRAY[3-current_player]
-                        draw_board()
-                        continue
+            else:
+                moves[current_player].append((cell_row,cell_column))
+                opposing_player = PLAYER_ARRAY[current_player]
+                current_player  = PLAYER_ARRAY[3-current_player]
+                draw_board()
+                continue
 
 
     pg.display.update() #Update pygame at end of move
