@@ -14,7 +14,7 @@ or
 
 This is a game of Go made with pygame. The game is played on the same board by two people, with alternating picks for moves. The engine is quite simple but follows all the rules of the game, including blocking a ko fight from occuring and blocking suicide. **NOTE**: This not a Go AI, any AI for this that I would develop would be on a different repository.
 
-##:w Recognition
+## Recognition
 
 A lot of the base logic regarding the game came from this series by Chess Programming: https://www.youtube.com/watch?v=dHlan0bgr5U&list=PLmN0neTso3JzVlIQC3fwnP1qgIKp1x97X
 
@@ -33,6 +33,7 @@ pip istall numpy
 - Score Estimation
 - (Simple) Robot
 
-## Struture
+## Structure
 
 Within the deprecated folder are an older version of the file and a newer but still older version of the current main 'go.py' file.
+
